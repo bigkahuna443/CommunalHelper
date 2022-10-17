@@ -218,24 +218,35 @@ namespace Celeste.Mod.CommunalHelper.Entities {
 
         public override void Render() {
             base.Render();
+            Vector2 start = (nodes[0].Position.Y < nodes[nodes.Length - 1].Position.Y) ? nodes[0].Position : nodes[nodes.Length - 1].Position;
+            Vector2 end = (start == nodes[0].Position) ? nodes[nodes.Length - 1].Position : nodes[0].Position;
+            Vector2 vertex = new(start.X, end.Y);
+            Vector2 midpoint = start + (end - start) / 2f;
+            Vector2 control = vertex + (midpoint - vertex) / 3f;
+            SimpleCurve curve = new SimpleCurve(start, end, control);
+
             if (outline) {
-                for (int i = 0; i < nodes.Length - 1; i++) {
-                    if (Calc.Round(nodes[i].Position) == Calc.Round(nodes[i + 1].Position)) {
+                for (int i = 0; i < nodes.Length; i++) {
+                    Vector2 currentNode = curve.GetPoint((float) i / nodes.Length);
+                    Vector2 nextNode = curve.GetPoint((float) (i + 1) / nodes.Length);
+                    if (Calc.Round(currentNode) == Calc.Round(nextNode)) {
                         continue;
                     }
-                    float yScale = Vector2.Distance(nodes[i].Position, nodes[i + 1].Position) / distanceConstraint;
-                    Vector2 mid = (nodes[i].Position + nodes[i + 1].Position) * 0.5f;
-                    float angle = Calc.Angle(nodes[i].Position, nodes[i + 1].Position) - MathHelper.PiOver2;
+                    float yScale = Vector2.Distance(currentNode, nextNode) / distanceConstraint;
+                    Vector2 mid = (currentNode + nextNode) * 0.5f;
+                    float angle = Calc.Angle(currentNode, nextNode) - MathHelper.PiOver2;
                     ChainTexture.DrawOutlineOnlyCentered(mid, new Vector2(1f, yScale), angle);
                 }
             }
-            for (int i = 0; i < nodes.Length - 1; i++) {
-                if (Calc.Round(nodes[i].Position) == Calc.Round(nodes[i + 1].Position)) {
+            for (int i = 0; i < nodes.Length; i++) {
+                Vector2 currentNode = curve.GetPoint((float) i / nodes.Length);
+                Vector2 nextNode = curve.GetPoint((float) (i + 1) / nodes.Length);
+                if (Calc.Round(currentNode) == Calc.Round(nextNode)) {
                     continue;
                 }
-                float yScale = Vector2.Distance(nodes[i].Position, nodes[i + 1].Position) / distanceConstraint;
-                Vector2 mid = (nodes[i].Position + nodes[i + 1].Position) * 0.5f;
-                float angle = Calc.Angle(nodes[i].Position, nodes[i + 1].Position) - MathHelper.PiOver2;
+                float yScale = Vector2.Distance(currentNode, nextNode) / distanceConstraint;
+                Vector2 mid = (currentNode + nextNode) * 0.5f;
+                float angle = Calc.Angle(currentNode, nextNode) - MathHelper.PiOver2;
                 ChainTexture.DrawCentered(mid, Color.White, new Vector2(1f, yScale), angle);
             }
         }
